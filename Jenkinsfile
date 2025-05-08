@@ -46,7 +46,7 @@ pipeline {
             steps {
                 script {
                     def result = validate("make validate-ansible")
-                    sendGitHubComment("**Ansible Validations** ${result}")
+                    sendGitHubComment("**Ansible Validations:** ${result}")
                 }
             }
         }
@@ -148,10 +148,10 @@ pipeline {
 def validate(cmd) {
     try {
         sh cmd
-        return '✅ Éxito'
+        return '✅ OK'
     } catch (Exception e) {
         currentBuild.result = 'FAILURE'
-        return '❌ Fallo'
+        return '❌ Failure'
     }
 }
 
