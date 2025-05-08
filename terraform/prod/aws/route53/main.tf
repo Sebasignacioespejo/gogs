@@ -18,6 +18,7 @@ module "ec2" {
   source = "../../../modules/aws/route53"
 
   hosted_zone_id = var.hosted_zone_id
+  alert_emails   = var.alert_emails
 
   ec2_ip = local.ec2_tfstate.outputs.ec2_public_ip.value
   vm_ip  = data.terraform_remote_state.network_tfstate.outputs.vm_ip
