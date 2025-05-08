@@ -1,0 +1,54 @@
+- hosts: "{{ host_ip }}"
+  become: yes
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: Copiar script de instalación
+      copy:
+        src: ../install_docker.sh
+        dest: /tmp/install_docker.sh
+        mode: "0755"
+
+    - name: Ejecutar el script
+      shell: /tmp/install_docker.sh
+
+    - name: Iniciar Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Copiar imagen Docker a la EC2
+      copy:
+        src: ../docker-image/gogs.tar
+        dest: /tmp/gogs-image.tar
+
+    - name: Cargar la imagen Docker en la EC2
+      command: docker load -i /tmp/gogs-image.tar
+
+    - name: Crear directorios para Gogs
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - /var/lib/gogs/data/gogs/conf
+        - /var/lib/gogs/backup
+
+    - name: Copiar el archivo app.ini
+      copy:
+        src: ../app.ini
+        dest: /var/lib/gogs/data/gogs/conf/app.ini
+        mode: "0644"
+
+    - name: Ejecutar el contenedor Docker Gogs
+      docker_container:
+        name: gogs
+        image: gogs
+        state: started
+        restart_policy: always
+        volumes:
+          - /var/lib/gogs/data:/data
+          - /var/lib/gogs/backup:/backup
+        published_ports:
+          - "3000:3000"

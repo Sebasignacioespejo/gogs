@@ -1,0 +1,25 @@
+- name: Restaurar backup
+  hosts: "{{ host_ip }}"
+  become: true
+  vars:
+    ansible_user: ubuntu
+
+  tasks:
+    - name: Copiar archivo de backup
+      copy:
+        src: "../{{ backup_file_name }}"
+        dest: "/var/lib/gogs/backup/gogs-backup.zip"
+
+    - name: Restaurar Gogs
+      shell: docker exec -u root gogs ./gogs restore --from="/backup/gogs-backup.zip" --config=/data/gogs/conf/app.ini --tempdir=/data/tmp
+
+    - name: Copiar app.ini desde el backup al nuevo conf
+      ansible.builtin.copy:
+        src: /var/lib/gogs/data/gogs.bak/conf/app.ini
+        dest: /var/lib/gogs/data/gogs/conf/app.ini
+        remote_src: yes
+
+    - name: Eliminar el directorio de backup de Gogs
+      ansible.builtin.file:
+        path: /var/lib/gogs/data/gogs.bak
+        state: absent
