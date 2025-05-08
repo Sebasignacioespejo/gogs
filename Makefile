@@ -79,7 +79,7 @@ infra-route-53:
 	@echo ']' >> terraform/prod/aws/route53/terraform.tfvars
 	@echo 'hosted_zone_id = "$(HOSTED_ZONE_ID)"' >> terraform/prod/aws/route53/terraform.tfvars
 
-	# cd terraform/prod/aws/route53 && terraform init && terraform apply -auto-approve
+	cd terraform/prod/aws/route53 && terraform init && terraform apply -auto-approve
 
 generate-backup-ips:
 	cd terraform/prod/aws/ec2 && terraform init && terraform output -raw ec2_public_ip > ../../../../EC2_IP.txt
