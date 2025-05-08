@@ -12,7 +12,9 @@ public/img/avatar/
 /gogs
 profile/
 *.pem
-output*
 /release
 .task
 .envrc
+.terraform*
+terraform.tfvars
+.env
