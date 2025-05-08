@@ -14,6 +14,12 @@ pipeline {
         EMAIL_RECIPIENTS = credentials('EMAIL_RECIPIENTS')
 
         HOSTED_ZONE_ID = credentials('HOSTED_ZONE_ID')
+
+        AWS_ACCESS_KEY_ID       = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY   = credentials('AWS_SECRET_ACCESS_KEY')
+
+        AZURE_STORAGE_ACCOUNT   = credentials('AZURE_STORAGE_ACCOUNT')
+        AZURE_STORAGE_KEY       = credentials('AZURE_STORAGE_KEY')
     }
 
     stages {
