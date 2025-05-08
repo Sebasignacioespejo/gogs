@@ -1,5 +1,5 @@
 - name: Restaurar backup
-  hosts: "{{ host_ip }}"
+  hosts: "{{ host_ip | default('127.0.0.1') }}"
   become: true
   vars:
     ansible_user: ubuntu
