@@ -30,7 +30,7 @@ pipeline {
             steps {
                 script {
                     def result = validate("make validate-jenkinsfiles")
-                    sendGitHubComment("**Validación Jenkinsfiles**: ${result}")
+                    sendGitHubComment("**Jenkinsfiles Validations:** ${result}")
                 }
             }
         }
@@ -44,7 +44,7 @@ pipeline {
             steps {
                 script {
                     def result = validate("make validate-ansible")
-                    sendGitHubComment("**Validación Ansible**: ${result}")
+                    sendGitHubComment("**Ansible Validations** ${result}")
                 }
             }
         }
@@ -58,7 +58,7 @@ pipeline {
             steps {
                 script {
                     def result = validate("make validate-terraform")
-                    sendGitHubComment("**Validación Terraform**: ${result}")
+                    sendGitHubComment("**Terraform Validations:** ${result}")
                 }
             }
         }
@@ -68,7 +68,7 @@ pipeline {
                 script {
                     def result = validate("make docker-build")
                     if (env.BRANCH_NAME != 'main') {
-                        sendGitHubComment("**Validación Build**: ${result}")
+                        sendGitHubComment("**Build Validations:** ${result}")
                     }
                 }
             }
