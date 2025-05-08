@@ -30,7 +30,7 @@ pipeline {
             steps {
                 script {
                     def result = validate("make validate-jenkinsfiles")
-                    sendGitHubComment("**Validación Ansible**: ${result}")
+                    sendGitHubComment("**Validación Jenkinsfiles**: ${result}")
                 }
             }
         }
@@ -139,6 +139,7 @@ def validate(cmd) {
         sh cmd
         return '✅ Éxito'
     } catch (Exception e) {
+        currentBuild.result = 'FAILURE'
         return '❌ Fallo'
     }
 }
