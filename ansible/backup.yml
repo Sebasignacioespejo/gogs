@@ -1,0 +1,33 @@
+- name: Crear backup
+  hosts: "{{ host_ip }}"
+  become: true
+  vars:
+    ansible_user: ubuntu
+
+  tasks:
+    - name: Ejecutar Gogs backup
+      shell: docker exec -u root gogs ./gogs backup
+
+    - name: Crear carpeta /backup en el contenedor
+      ansible.builtin.shell: |
+        docker exec gogs mkdir -p /backup
+
+    - name: Mover el archivo a /backup
+      ansible.builtin.shell: |
+        docker exec gogs sh -c 'mv gogs-backup-*.zip /backup/'
+
+    - name: Encontrar backup
+      shell: "ls -t /var/lib/gogs/backup/*.zip | head -n 1"
+      register: latest_backup
+      changed_when: false
+
+    - name: Copiar backup en el agente
+      fetch:
+        src: "{{ latest_backup.stdout }}"
+        dest: "../backup/"
+        flat: yes
+
+    - name: Eliminar backup
+      ansible.builtin.file:
+        path: "{{ latest_backup.stdout }}"
+        state: absent
