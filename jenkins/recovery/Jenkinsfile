@@ -1,0 +1,54 @@
+pipeline {
+    agent {
+        label 'agent1'
+    }
+
+    environment {
+        AWS_ACCESS_KEY_ID       = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY   = credentials('AWS_SECRET_ACCESS_KEY')
+
+        AZURE_STORAGE_ACCOUNT   = credentials('AZURE_STORAGE_ACCOUNT')
+        AZURE_STORAGE_KEY       = credentials('AZURE_STORAGE_KEY')
+
+        ARM_CLIENT_ID           = credentials('ARM_CLIENT_ID')
+        ARM_CLIENT_SECRET       = credentials('ARM_CLIENT_SECRET')
+        ARM_TENANT_ID           = credentials('ARM_TENANT_ID')
+        ARM_SUBSCRIPTION_ID     = credentials('ARM_SUBSCRIPTION_ID')
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Create backup IPs') {
+            steps {
+                sh 'make generate-backup-ips'
+            }
+        }
+
+        stage('Create backup with Ansible') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ec2_ssh_key', keyFileVariable: 'KEY')]) {
+                    sh 'make create-backup KEY=$KEY'
+                }
+            }
+        }
+
+        stage('recover backup with Ansible') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'vm_ssh_key', keyFileVariable: 'KEY')]) {
+                    sh 'make recover-backup KEY=$KEY'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Limpiando espacio'
+            cleanWs()
+        }
+    }
+}
