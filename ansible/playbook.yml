@@ -3,6 +3,15 @@
   vars:
     ansible_user: ubuntu
   tasks:
+    - name: "Include splunk_otel_collector"
+      include_role:
+        name: "signalfx.splunk_otel_collector.collector"
+      vars:
+        splunk_access_token: psybV69ZKxqCM8kDMCrwKw
+        splunk_realm: us1
+        splunk_otel_collector_config: /etc/otel/collector/agent_config.yaml
+        install_splunk_otel_auto_instrumentation: yes
+
     - name: Copiar script de instalación
       copy:
         src: ../install_docker.sh
