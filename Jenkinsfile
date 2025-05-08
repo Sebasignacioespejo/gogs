@@ -8,7 +8,7 @@ pipeline {
     }
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: "100"))
+        buildDiscarder(logRotator(numToKeepStr: "3"))
     }   
 
     environment {
