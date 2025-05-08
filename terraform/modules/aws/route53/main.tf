@@ -65,13 +65,13 @@ resource "aws_sns_topic_subscription" "email_alert" {
 
 resource "aws_cloudwatch_metric_alarm" "route53_fail" {
   alarm_name          = "aws-primary-ip-down"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = 1
   metric_name         = "HealthCheckStatus"
   namespace           = "AWS/Route53"
   period              = 60
   statistic           = "Minimum"
-  threshold           = 1
+  threshold           = 0.5
   alarm_description   = "Primary IP Failed (health check)"
   dimensions = {
     HealthCheckId = aws_route53_health_check.aws.id
