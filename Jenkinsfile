@@ -12,6 +12,8 @@ pipeline {
         GITHUB_REPO = 'Sebasignacioespejo/gogs'
 
         EMAIL_RECIPIENTS = credentials('EMAIL_RECIPIENTS')
+
+        HOSTED_ZONE_ID = credentials('HOSTED_ZONE_ID')
     }
 
     stages {
@@ -89,6 +91,15 @@ pipeline {
                         }
                     )
                 }
+            }
+        }
+
+        stage("Configure Route 53") {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh 'make infra-route-53 HOSTED_ZONE_ID=$HOSTED_ZONE_ID'
             }
         }
     }

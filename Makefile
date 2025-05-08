@@ -72,6 +72,15 @@ configure:
 	--extra-vars "host_ip=$(SERVER_IP)" \
 	--private-key $(KEY)
 
+infra-route-53:
+	@echo 'alert_emails = [' > terraform/prod/aws/route53/terraform.tfvars
+	@echo $(EMAIL_RECIPIENTS) | tr ',' '\n' | sed 's/.*/  "&",/' >> terraform/prod/aws/route53/terraform.tfvars
+	@sed -i '$$s/,$$//' terraform/prod/aws/route53/terraform.tfvars
+	@echo ']' >> terraform/prod/aws/route53/terraform.tfvars
+	@echo 'hosted_zone_id = "$(HOSTED_ZONE_ID)"' >> terraform/prod/aws/route53/terraform.tfvars
+
+	# cd terraform/prod/aws/route53 && terraform init && terraform apply -auto-approve
+
 generate-backup-ips:
 	cd terraform/prod/aws/ec2 && terraform init && terraform output -raw ec2_public_ip > ../../../../EC2_IP.txt
 	cd terraform/prod/azure/network && terraform init && terraform output -raw vm_ip > ../../../../VM_IP.txt
