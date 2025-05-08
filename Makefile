@@ -96,5 +96,46 @@ recover-backup:
 	--extra-vars "backup_file_name=$(BACKUP_FILE)" \
 	--private-key $(KEY)
 
+validate:
+	@echo "🔍 Validando $(1)..."
+	@curl -s -u $(JENKINS_USER):$(JENKINS_TOKEN) \
+		-F "jenkinsfile=<$(1)" \
+		$(JENKINS_URL)/pipeline-model-converter/validate | tee /tmp/validation.log
+
+	@grep -q "Jenkinsfile successfully validated" /tmp/validation.log && \
+		echo "✅ $(1) OK" || (echo "❌ ERROR en $(1)" && exit 1)
+
+validate-jenkinsfiles:
+	$(call validate,jenkins/aws/Jenkinsfile)
+	$(call validate,jenkins/azure/Jenkinsfile)
+	$(call validate,jenkins/recovery/Jenkinsfile)
+
+validate-ansible:
+	@echo "🔍 Validando Ansible Deploy..."
+	ansible-playbook --syntax-check ansible/playbook.yml
+	@echo "✅ Ansible deploy OK"
+
+	@echo "🔍 Validando Ansible Backup..."
+	ansible-playbook --syntax-check ansible/backup.yml
+	@echo "✅ Ansible backup OK"
+
+	@echo "🔍 Validando Ansible Recover..."
+	ansible-playbook --syntax-check ansible/recover.yml
+	@echo "✅ Ansible recover OK"
+
+validate-terraform:
+	@echo "🔍 Validando Terraform AWS..."
+	cd terraform/prod/aws/network && terraform init -backend=false -input=false && terraform validate
+	cd terraform/prod/aws/ec2 && terraform init -backend=false -input=false && terraform validate
+	cd terraform/prod/aws/rds && terraform init -backend=false -input=false && terraform validate
+	cd terraform/prod/aws/security-rules && terraform init -backend=false -input=false && terraform validate
+	@echo "✅ Terraform aws OK"
+
+	@echo "🔍 Validando Terraform Azure..."
+	cd terraform/prod/azure/network && terraform init -backend=false -input=false && terraform validate
+	cd terraform/prod/azure/vm && terraform init -backend=false -input=false && terraform validate
+	cd terraform/prod/azure/db && terraform init -backend=false -input=false && terraform validate
+	@echo "✅ Terraform azure OK"
+
 clean:
 	docker system prune -af --volumes
