@@ -9,7 +9,6 @@ pipeline {
 
     environment {
         GITHUB_TOKEN = credentials('GITHUB_TOKEN')
-        PR_NUMBER = env.CHANGE_ID
         GITHUB_REPO = 'Sebasignacioespejo/gogs'
 
         EMAIL_RECIPIENTS = credentials('EMAIL_RECIPIENTS')
@@ -148,6 +147,6 @@ def sendGitHubComment(String message) {
     sh """
         curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
         -d '{"body": "${message}"}' \
-        https://api.github.com/repos/${GITHUB_REPO}/issues/${PR_NUMBER}/comments
+        https://api.github.com/repos/${GITHUB_REPO}/issues/${env.CHANGE_ID}/comments
     """
 }
