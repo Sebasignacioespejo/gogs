@@ -1,0 +1,87 @@
+pipeline {
+    agent {
+        label 'agent1'
+    }
+
+    environment {
+        DB_NAME                 = 'gogs'
+        DB_USER                 = credentials('DB_USER')
+        DB_PASSWORD             = credentials('DB_PASSWORD')
+
+        EC2_AMI                 = 'ami-04f167a56786e4b09'
+        EC2_KEY_NAME            = credentials('EC2_KEY_NAME')
+        CONTROL_IP              = credentials('CONTROL_IP')
+
+        AWS_ACCESS_KEY_ID       = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY   = credentials('AWS_SECRET_ACCESS_KEY')
+    }
+
+    stages {
+        stage('Get Agent IP Address') {
+            steps {
+                script {
+                    def agent_ip = sh(script: "curl -s https://checkip.amazonaws.com", returnStdout: true).trim()
+                    env.AGENT_IP = agent_ip
+                    echo "IP publica del agente: ${env.AGENT_IP}"
+                }
+            }
+        }
+
+        stage('Clone Repo') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Generate Terraform Variables') {
+            steps {
+                sh '''
+                    make generate-tfvars-aws \
+                        EC2_AMI=$EC2_AMI \
+                        EC2_KEY_NAME=$EC2_KEY_NAME \
+                        DB_USER=$DB_USER \
+                        DB_PASSWORD=$DB_PASSWORD \
+                        DB_NAME=$DB_NAME \
+                        CONTROL_IP=$CONTROL_IP \
+                        AGENT_IP=$AGENT_IP
+                '''
+            }
+        }
+
+        stage('Create Infrastructure') {
+            steps {
+                sh 'make infra-aws'
+            }
+        }
+
+        stage("Generate App Config File") {
+            steps {
+                sh '''
+                    make generate-app-config \
+                        DB_USER=$DB_USER \
+                        DB_PASSWORD=$DB_PASSWORD
+                '''
+            }
+        }
+
+        stage("Save Docker Image") {
+            steps {
+                sh 'make save-docker-image'
+            }
+        }
+
+        stage('Configure EC2 with Ansible') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ec2_ssh_key', keyFileVariable: 'KEY')]) {
+                    sh 'make configure KEY=$KEY'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Limpiando espacio'
+            cleanWs()
+        }
+    }
+}

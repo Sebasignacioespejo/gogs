@@ -1,0 +1,90 @@
+pipeline {
+    agent {
+        label 'agent1'
+    }
+
+    environment {
+        DB_NAME                 = 'gogs'
+        DB_USER                 = credentials('DB_USER')
+        DB_PASSWORD             = credentials('DB_PASSWORD')
+
+        VM_KEY_NAME            = credentials('VM_KEY_NAME')
+        CONTROL_IP              = credentials('CONTROL_IP')
+
+        AZURE_STORAGE_ACCOUNT   = credentials('AZURE_STORAGE_ACCOUNT')
+        AZURE_STORAGE_KEY       = credentials('AZURE_STORAGE_KEY')
+
+        ARM_CLIENT_ID           = credentials('ARM_CLIENT_ID')
+        ARM_CLIENT_SECRET       = credentials('ARM_CLIENT_SECRET')
+        ARM_TENANT_ID           = credentials('ARM_TENANT_ID')
+        ARM_SUBSCRIPTION_ID     = credentials('ARM_SUBSCRIPTION_ID')
+    }
+
+    stages {
+        stage('Get Agent IP Address') {
+            steps {
+                script {
+                    def agent_ip = sh(script: "curl -s https://checkip.amazonaws.com", returnStdout: true).trim()
+                    env.AGENT_IP = agent_ip
+                    echo "IP publica del agente: ${env.AGENT_IP}"
+                }
+            }
+        }
+
+        stage('Clone Repo') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Generate Terraform Variables') {
+            steps {
+                sh '''
+                    make generate-tfvars-azure \
+                        VM_KEY_NAME=$VM_KEY_NAME \
+                        DB_USER=$DB_USER \
+                        DB_PASSWORD=$DB_PASSWORD \
+                        DB_NAME=$DB_NAME \
+                        CONTROL_IP=$CONTROL_IP \
+                        AGENT_IP=$AGENT_IP
+                '''
+            }
+        }
+
+        stage('Create Infrastructure') {
+            steps {
+                sh 'make infra-azure'
+            }
+        }
+
+        stage("Generate App Config File") {
+            steps {
+                sh '''
+                    make generate-app-config \
+                        DB_USER=$DB_USER \
+                        DB_PASSWORD=$DB_PASSWORD
+                '''
+            }
+        }
+
+        stage("Save Docker Image") {
+            steps {
+                sh 'make save-docker-image'
+            }
+        }
+
+        stage('Configure VM with Ansible') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'vm_ssh_key', keyFileVariable: 'KEY')]) {
+                    sh 'make configure KEY=$KEY'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Limpiando espacio'
+            cleanWs()
+        }
+    }
+}
