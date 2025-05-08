@@ -7,6 +7,10 @@ pipeline {
         githubPush()
     }
 
+    options {
+        buildDiscarder(logRotator(numToKeepStr: "100"))
+    }   
+
     environment {
         GITHUB_TOKEN = credentials('GITHUB_TOKEN')
         GITHUB_REPO = 'Sebasignacioespejo/gogs'
@@ -20,6 +24,11 @@ pipeline {
 
         AZURE_STORAGE_ACCOUNT   = credentials('AZURE_STORAGE_ACCOUNT')
         AZURE_STORAGE_KEY       = credentials('AZURE_STORAGE_KEY')
+
+        ARM_CLIENT_ID           = credentials('ARM_CLIENT_ID')
+        ARM_CLIENT_SECRET       = credentials('ARM_CLIENT_SECRET')
+        ARM_TENANT_ID           = credentials('ARM_TENANT_ID')
+        ARM_SUBSCRIPTION_ID     = credentials('ARM_SUBSCRIPTION_ID')
     }
 
     stages {
