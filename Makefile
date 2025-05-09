@@ -49,6 +49,9 @@ generate-app-config:
 	@echo "EXTERNAL_URL = http://${SERVER_IP}:3000" >> app.ini
 	@echo "DOMAIN = ${SERVER_IP}" >> app.ini
 	@echo '' >> app.ini
+	@echo '[repository]' >> app.ini
+	@echo 'ROOT = /data/gogs-repositories' >> app.ini
+	@echo '' >> app.ini
 	@echo '[database]' >> app.ini
 	@echo "HOST = ${DB_ENDPOINT}" >> app.ini
 	@echo "USER = ${DB_USER}" >> app.ini
