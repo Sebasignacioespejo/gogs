@@ -10,6 +10,12 @@
         src: "../{{ backup_file_name }}"
         dest: "/var/lib/gogs/backup/gogs-backup.zip"
 
+    - name: Crear directorio temporal
+      file:
+        path: "/var/lib/gogs/data/tmp"
+        state: directory
+        mode: "0755"
+
     - name: Restaurar Gogs
       shell: docker exec -u root gogs ./gogs restore --from="/backup/gogs-backup.zip" --config=/data/gogs/conf/app.ini --tempdir=/data/tmp
 
@@ -22,4 +28,14 @@
     - name: Eliminar el directorio de backup de Gogs
       ansible.builtin.file:
         path: /var/lib/gogs/data/gogs.bak
+        state: absent
+
+    - name: Eliminar el directorio temporal
+      ansible.builtin.file:
+        path: /var/lib/gogs/data/tmp
+        state: absent
+
+    - name: Eliminar el backup de Gogs
+      ansible.builtin.file:
+        path: "/var/lib/gogs/backup/gogs-backup.zip"
         state: absent
