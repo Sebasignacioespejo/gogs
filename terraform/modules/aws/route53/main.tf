@@ -5,7 +5,7 @@ resource "aws_route53_health_check" "aws" {
   type              = "HTTP"
   resource_path     = "/healthcheck"
   port              = 3000
-  failure_threshold = 3
+  failure_threshold = 2
 }
 
 resource "aws_route53_health_check" "azure" {
@@ -13,7 +13,7 @@ resource "aws_route53_health_check" "azure" {
   type              = "HTTP"
   resource_path     = "/healthcheck"
   port              = 3000
-  failure_threshold = 3
+  failure_threshold = 2
 }
 
 # DNS Records

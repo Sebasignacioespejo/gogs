@@ -1,8 +1,9 @@
 # Data from ec2
 
 data "aws_s3_object" "ec2_tfstate" {
-  bucket = "terraform-backend-wow"
-  key    = "infra/ec2/terraform.tfstate"
+  bucket   = "terraform-backend-wow"
+  key      = "infra/ec2/terraform.tfstate"
+  provider = aws.ohio
 }
 
 # Data from vm
